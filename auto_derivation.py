@@ -4,28 +4,33 @@ class AutoDiff:
     def __init__(self, value, derivatives):
         self.value = value
         self.derivatives = derivatives
-
+    
     def __add__(self, other):
         if isinstance(other, (int, float)):
             return AutoDiff(self.value + other, self.derivatives)
         return AutoDiff(self.value + other.value, [d1 + d2 for d1, d2 in zip(self.derivatives, other.derivatives)])
-
+    
     def __mul__(self, other):
         if isinstance(other, (int, float)):
             return AutoDiff(self.value * other, [d * other for d in self.derivatives])
         new_derivatives = [self.value * d2 + d1 * other.value for d1, d2 in zip(self.derivatives, other.derivatives)]
         return AutoDiff(self.value * other.value, new_derivatives)
-
+    
     def __pow__(self, power):
         new_value = self.value ** power
         new_derivatives = [power * self.value ** (power - 1) * d for d in self.derivatives]
         return AutoDiff(new_value, new_derivatives)
-
+    
     def sin(self):
         return AutoDiff(math.sin(self.value), [math.cos(self.value) * d for d in self.derivatives])
-
+    
     def cos(self):
         return AutoDiff(math.cos(self.value), [-math.sin(self.value) * d for d in self.derivatives])
+    
+    def sigmoid(self):
+        sig_value = 1 / (1 + math.exp(-self.value))
+        sig_deriv = sig_value * (1 - sig_value)
+        return AutoDiff(sig_value, [sig_deriv * d for d in self.derivatives])
 
 def gradient(func, *args):
     n = len(args)
